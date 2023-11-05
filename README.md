@@ -13,6 +13,15 @@ For the concept and the API of the MLGame, visit the [wiki page](https://github.
   * pygame==2.0.0 if installs on mac
 * Other machine learning libraries you needed
 
+## Snake-Game-AI
+Train:
+```
+python MLGame.py -i train.py -f 100 snake
+```
+Model Play:
+```
+python MLGame.py -i model_play.py snake
+```
 ## Usage
 
 ```
