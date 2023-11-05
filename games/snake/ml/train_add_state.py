@@ -42,11 +42,12 @@ class MLPlay:
         self.direction = Direction.DOWN
         self.highest_score = 0
         self.previous_food = (0,0)
+        self.previous_head = (0,0)
         self.final_move_old = [1,0,0]
         self.total_score = 0
         self.plot_scores = []
         self.plot_mean_scores = []
-
+        self.grid_size = (SCENE_HEIGHT/10) * (SCENE_WIDTH/10)
 
     def update(self, scene_info):
         """
@@ -58,12 +59,19 @@ class MLPlay:
         self.snake_body = scene_info['snake_body']
         score = len(self.snake_body) + 1 -4
         reward = 0
-        
+
         if self.snake_head == self.previous_food:
-            reward = 10
-        if scene_info["status"] == "GAME_OVER":
+            reward = ((self.grid_size - len(self.snake_body) + 1) / self.grid_size) * 10 # range[0, 10]
+        elif scene_info["status"] == "GAME_OVER":
             print("game over")
-            reward = -10
+            reward = ((len(self.snake_body) + 1 - self.grid_size) / self.grid_size) * 10 + ((50 - self.n_games) / 50) * 5 # range[-10, 0]
+        else:
+            if np.linalg.norm(np.array(self.snake_head) - np.array(self.food)) < np.linalg.norm(np.array(self.previous_head) - np.array(self.previous_food)):
+                reward = 1 / (len(self.snake_body) + 1)
+            else:
+                reward = -1 / (len(self.snake_body) + 1)
+
+            reward *= 0.1
 
         # get old state
         state_new = self.get_state()
@@ -88,7 +96,7 @@ class MLPlay:
             self.direction = Direction.DOWN
             if self.highest_score < score:
                 self.highest_score = score
-                self.trainer.model.save(f'model{self.n_games}_13_states.pth')
+                # self.trainer.model.save(f'model{self.n_games}_13_states.pth')
                 self.trainer.model.save('best_model_13_states.pth')
             print('Games:',self.n_games,'Highest Score:',self.highest_score)
             self.plot_scores.append(score)
@@ -252,7 +260,7 @@ class MLPlay:
 
     def get_action(self, state):
         # random moves: tradeoff exploration / exploitation
-        self.epsilon = 80 - self.n_games
+        self.epsilon = 30 - self.n_games
         final_move = [0,0,0]
         if random.randint(0, 200) < self.epsilon:
             move = random.randint(0, 2)
