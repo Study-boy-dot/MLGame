@@ -95,7 +95,7 @@ class MLPlay:
             self.total_score += score
             mean_score = self.total_score / self.n_games
             self.plot_mean_scores.append(mean_score)
-            plot(self.plot_scores, self.plot_mean_scores)
+            plot(self.plot_scores, self.plot_mean_scores, 'Training Score 11 states.jpg')
             return "RESET"
 
         del self.snake_head
