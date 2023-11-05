@@ -11,7 +11,7 @@ from .model import Linear_QNet, QTrainer
 from .helper import plot
 # import agent
 from collections import namedtuple
-
+import pygame
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -36,8 +36,8 @@ class MLPlay:
         self.epsilon = 0 # randomness
         self.gamma = 0.6 # discount rate
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11, 256, 3)
-        self.trainer = QTrainer(self.model, lr=LR, gamma=self.gamma)
+        # self.model = Linear_QNet(11, 256, 3)
+        self.trainer = QTrainer(Linear_QNet(11, 256, 3), lr=LR, gamma=self.gamma)
         self.state_old = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         self.direction = Direction.DOWN
         self.highest_score = 0
@@ -67,7 +67,7 @@ class MLPlay:
 
         # get old state
         state_new = self.get_state()
-
+        
         # get move
         final_move = self.get_action(state_new)
         # print(final_move,self.direction)
@@ -88,7 +88,7 @@ class MLPlay:
             self.direction = Direction.DOWN
             if self.highest_score < score:
                 self.highest_score = score
-                self.model.save()
+                self.trainer.model.save(f'model{self.n_games}.pth')
             print('Games:',self.n_games,'Highest Score:',self.highest_score)
             self.plot_scores.append(score)
             self.total_score += score
@@ -149,6 +149,10 @@ class MLPlay:
         """
         Reset the status if needed
         """
+        self.state_old = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        self.direction = Direction.DOWN
+        self.previous_food = (0,0)
+        self.final_move_old = [1,0,0]
         return "RESET"
 
     def is_collision(self, pt=None):
@@ -237,7 +241,7 @@ class MLPlay:
             final_move[move] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
-            prediction = self.model(state0)
+            prediction = self.trainer.model(state0)
             move = torch.argmax(prediction).item()
             final_move[move] = 1
 
