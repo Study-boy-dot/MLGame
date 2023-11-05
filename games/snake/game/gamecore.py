@@ -87,7 +87,7 @@ class Scene:
             self._draw_group.add(new_body)
 
         if (not Scene.area_rect.collidepoint(self._snake.head_pos) or
-            self._snake.is_body_pos(self._snake.head_pos)):
+            self._snake.is_body_pos(self._snake.head_pos) or self._frame > 100*(len(self._snake.body))):
             self._status = GameStatus.GAME_OVER
 
         return self._status
